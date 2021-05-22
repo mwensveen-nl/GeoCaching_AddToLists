@@ -1,6 +1,6 @@
 # GeoCaching_AddToLists
 
-Tempermonkey script to add a geocache to a number of lists with one click
+Tempermonkey script to add a geocache to a default lists (or more default lists) with one click
 
 ## Installation
 

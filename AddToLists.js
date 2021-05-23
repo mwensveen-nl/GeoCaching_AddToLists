@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Geocaching Add to List
 // @namespace    nl.mwensveen.geocaching
-// @version      0.1
+// @version      0.2
 // @description  Add option to add the geocache to a number of lists. The lists are set in the config using the tempermonkey menu.
 // @author       mwensveen
 // @match        https://www.geocaching.com/geocache/*
@@ -19,71 +19,87 @@
 
 (function () {
   "use strict";
-  var addedToDefaultList = false;
-  var gccode = "";
+  const LINK_ID_PREFIX = "addToDefaultLists_";
+  const LIST_ID_PREFIX = "addToDefaultListsWrapper_";
+  const ADD_LINK_AFTER_ID = "#ctl00_ContentBody_GeoNav_uxAddToListBtn";
   var userLists = new Array();
+  var defaultListsFromConfig = {};
+  var gccode = $(
+    "#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode"
+  ).html();
 
-  var cfg = new MonkeyConfig({
-    title: "Default lists (comma seperated)",
-    menuCommand: true,
-    params: {
-      defaulLists: {
-        type: "text",
-        default: "TestList",
+  function getListsFromConfig() {
+    var cfg = new MonkeyConfig({
+      title: "Default lists",
+      menuCommand: true,
+      params: {
+        defaulLists: {
+          type: "text",
+          default: "Example=My List",
+        },
       },
-    },
-  });
-  var defaultListsFromConfig = cfg.get("defaulLists").split(",");
+    });
+    var listsArray = cfg.get("defaulLists").split(";");
+    listsArray.forEach((element) => {
+      var elems = element.split("=");
+      var name = elems[0];
+      var lists = elems[1].split(",");
+      defaultListsFromConfig[name] = lists;
+    });
 
-  gccode = $("#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode").html();
+    for (const [key, value] of Object.entries(defaultListsFromConfig)) {
+      console.log(key, value);
+    }
+  }
 
-  function addButton() {
+  function addAllLinks() {
+    var keys = Object.keys(defaultListsFromConfig).reverse();
+    keys.forEach((key) => {
+      addLink(key, defaultListsFromConfig[key]);
+    });
+  }
+
+  function addLink(name, defaultLists) {
+    console.log(name, defaultLists);
     var a = document.createElement("a");
-    a.id = "addToDefaulLists";
-    a.appendChild(
-      document.createTextNode(
-        "Add to Default Lists (" + defaultListsFromConfig.length + ")"
-      )
-    );
-    a.title = defaultListsFromConfig.join(", ");
+    a.id = LINK_ID_PREFIX + name;
+    a.appendChild(getLinkText(name, defaultLists));
+    a.title = defaultLists.join(", ");
     a.href = "javascript:void(0);";
     a.onclick = () => {
-      addCacheToDefaultLists();
+      addCacheToDefaultLists(name);
       return false;
     };
 
     var li = document.createElement("li");
-    li.id = "addToDefaulListsWrapper";
+    li.id = LIST_ID_PREFIX + name;
     li.style.backgroundImage = "url('/images/icons/16/bookmark_list.png')";
     li.style.backgroundRepeat = "no-repeat";
     li.style.backgroundPosition = "0 50%";
     li.appendChild(a);
-    $("#ctl00_ContentBody_GeoNav_uxAddToListBtn").after(li);
+    $(ADD_LINK_AFTER_ID).after(li);
   }
 
-  function addCacheToDefaultLists() {
-    if (addedToDefaultList) {
-      return;
-    }
+  function addCacheToDefaultLists(name) {
+    console.log("adding to ", name);
+    var listsToAdd = defaultListsFromConfig[name];
     for (const [key, value] of Object.entries(userLists)) {
-      if (defaultListsFromConfig.includes(key)) {
+      if (listsToAdd.includes(key)) {
         console.log(key, value);
         addCacheToList(value);
       }
     }
-    addedToDefaultList = true;
 
     var span = document.createElement("span");
-    var text = document.createTextNode(
-      "Add to Default Lists (" + defaultListsFromConfig.length + ")"
-    );
-    span.appendChild(text);
+    span.appendChild(getLinkText(name, listsToAdd));
     span.style.color = "#02874d";
     span.style.textDecoration = "none";
     span.style.cursor = "default";
-    $("#addToDefaulLists").replaceWith(span);
-    $("#addToDefaulListsWrapper").css("background-size", "16px 16px");
-    $("#addToDefaulListsWrapper").css(
+    var linkId = "#" + LINK_ID_PREFIX + name;
+    var listItemId = "#" + LIST_ID_PREFIX + name;
+    $(linkId).replaceWith(span);
+    $(listItemId).css("background-size", "16px 16px");
+    $(listItemId).css(
       "background-image",
       "url('https://www.geocaching.com/images/logtypes/48/2.png')"
     );
@@ -127,6 +143,12 @@
     );
   }
 
+  function getLinkText(name, defaultLists) {
+    return document.createTextNode(
+      "Add to " + name + " (" + defaultLists.length + ")"
+    );
+  }
   getUserLists();
-  addButton();
+  getListsFromConfig();
+  addAllLinks();
 })();

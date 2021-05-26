@@ -80,23 +80,25 @@
     $(ADD_LINK_AFTER_ID).after(li);
   }
 
-  function addCacheToDefaultLists(name) {
-    console.log("adding to ", name);
-    var listsToAdd = defaultListsFromConfig[name];
-    for (const [key, value] of Object.entries(userLists)) {
-      if (listsToAdd.includes(key)) {
-        console.log(key, value);
-        addCacheToList(value);
+  function addCacheToDefaultLists(setName) {
+    console.log("adding to ", setName);
+    var listsToAdd = defaultListsFromConfig[setName];
+    for (const listName of listsToAdd) {
+      if (listName in userLists) {
+        console.log(listName, userLists[listName]);
+        addCacheToList(listName, userLists[listName]);
+      } else {
+        alert("List " + listName + " does not exist");
       }
     }
 
     var span = document.createElement("span");
-    span.appendChild(getLinkText(name, listsToAdd));
+    span.appendChild(getLinkText(setName, listsToAdd));
     span.style.color = "#02874d";
     span.style.textDecoration = "none";
     span.style.cursor = "default";
-    var linkId = "#" + LINK_ID_PREFIX + name;
-    var listItemId = "#" + LIST_ID_PREFIX + name;
+    var linkId = "#" + LINK_ID_PREFIX + setName;
+    var listItemId = "#" + LIST_ID_PREFIX + setName;
     $(linkId).replaceWith(span);
     $(listItemId).css("background-size", "16px 16px");
     $(listItemId).css(
@@ -105,7 +107,7 @@
     );
   }
 
-  function addCacheToList(listId) {
+  function addCacheToList(listName, listId) {
     var url =
       "https://www.geocaching.com/api/proxy/web/v1/lists/" +
       listId +
@@ -127,6 +129,7 @@
       },
       error: function (err) {
         console.log(err);
+        alert("Problem adding to list " + listName);
       },
     });
   }

@@ -83,31 +83,20 @@
   function addCacheToDefaultLists(setName) {
     console.log("adding to ", setName);
     var listsToAdd = defaultListsFromConfig[setName];
+    createSuccessErrorText(setName, true);
+
     for (const listName of listsToAdd) {
       if (listName in userLists) {
         console.log(listName, userLists[listName]);
-        addCacheToList(listName, userLists[listName]);
+        addCacheToList(listName, userLists[listName], setName);
       } else {
         alert("List " + listName + " does not exist");
+        createSuccessErrorText(setName, false);
       }
     }
-
-    var span = document.createElement("span");
-    span.appendChild(getLinkText(setName, listsToAdd));
-    span.style.color = "#02874d";
-    span.style.textDecoration = "none";
-    span.style.cursor = "default";
-    var linkId = "#" + LINK_ID_PREFIX + setName;
-    var listItemId = "#" + LIST_ID_PREFIX + setName;
-    $(linkId).replaceWith(span);
-    $(listItemId).css("background-size", "16px 16px");
-    $(listItemId).css(
-      "background-image",
-      "url('https://www.geocaching.com/images/logtypes/48/2.png')"
-    );
   }
 
-  function addCacheToList(listName, listId) {
+  function addCacheToList(listName, listId, setName) {
     var url =
       "https://www.geocaching.com/api/proxy/web/v1/lists/" +
       listId +
@@ -130,6 +119,7 @@
       error: function (err) {
         console.log(err);
         alert("Problem adding to list " + listName);
+        createSuccessErrorText(setName, false);
       },
     });
   }
@@ -151,6 +141,28 @@
       "Add to " + name + " (" + defaultLists.length + ")"
     );
   }
+
+  function createSuccessErrorText(setName, success) {
+    var listsToAdd = defaultListsFromConfig[setName];
+    var span = document.createElement("span");
+    span.appendChild(getLinkText(setName, listsToAdd));
+    console.log(setName, success);
+    span.style.color = success ? "#02874d" : "#d34627";
+    span.style.textDecoration = "none";
+    span.style.cursor = "default";
+    var linkId = LINK_ID_PREFIX + setName;
+    span.id = linkId;
+    var listItemId = "#" + LIST_ID_PREFIX + setName;
+    $("#" + linkId).replaceWith(span);
+    $(listItemId).css(
+      "background-image",
+      success
+        ? "url('https://www.geocaching.com/images/logtypes/2.png')"
+        : "url('https://www.geocaching.com/images/logtypes/3.png')"
+    );
+    return span;
+  }
+
   getUserLists();
   getListsFromConfig();
   addAllLinks();

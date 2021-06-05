@@ -1,6 +1,6 @@
 # GeoCaching_AddToLists
 
-Tempermonkey script to add a geocache to one or more sets of default lists with one click
+Tempermonkey script to add a geocache to one or more sets of lists with one click.
 
 ## Installation
 
@@ -14,7 +14,7 @@ More info on https://www.tampermonkey.net/faq.php
 
 ## Setup
 
-1. Go to geocaching.com and search for a cache you want to add to one or more default lists. You should now have a new option below "Add to List", called "Add to Defaults (1)"
+1. Go to geocaching.com and search for a cache you want to add to one or more lists. You should now have a new option below "Add to List", called "Add to Defaults (1)"
 2. Now open the tempermonkey menu
 3. Find the entry "Geocaching Add to List" and click on "Default lists"
 4. Here you can set the sets of default lists.
@@ -24,12 +24,13 @@ More info on https://www.tampermonkey.net/faq.php
    You can add more sets by seperating them with a semicolon (;)
    Eg: Solved=Solved Mysteries;Vacation=My Vacation;SolvedVaction=Solved Mysteries,My Vacation
 5. Save
+6. Refresh the page
 
 You can always change the list the same way.
 
 ## Usage
 
-1. On a geocache page, hover over the option "Add to Default Lists (x)". Where x is the number of lists you added during the setup.
+1. On a geocache page, hover over the option "Add to <Name> Lists (x)". Where x is the number of lists you added during the setup.
 2. You now see the names of the lists
 3. Click the option.
 4. The cache is saved to the lists.

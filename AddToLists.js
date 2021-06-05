@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Geocaching Add to List
 // @namespace    nl.mwensveen.geocaching
-// @version      0.2
+// @version      0.3
 // @description  Add option to add the geocache to a number of lists. The lists are set in the config using the tempermonkey menu.
 // @author       mwensveen
 // @match        https://www.geocaching.com/geocache/*
@@ -27,6 +27,7 @@
   var gccode = $(
     "#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode"
   ).html();
+  var userName = "unknown username"; // valid usernames cannot have spaces
 
   function getListsFromConfig() {
     var cfg = new MonkeyConfig({
@@ -163,7 +164,57 @@
     return span;
   }
 
+  function getUserName() {
+    if ($(".username")[0]) {
+      userName = $(".username").html();
+    }
+  }
+
+  function checkAlreadyInDefaultLists() {
+    var keys = Object.keys(defaultListsFromConfig).reverse();
+    keys.forEach((key) => {
+      checkAlreadyInDefaultList(key, defaultListsFromConfig[key]);
+    });
+  }
+
+  function checkAlreadyInDefaultList(setName, defaultList) {
+    for (const listName of defaultList) {
+      if (!hasBookmark(listName)) {
+        return;
+      }
+    }
+    createSuccessErrorText(setName, true);
+  }
+
+  function hasBookmark(userListName) {
+    var bmList = $("ul.BookmarkList li:contains(" + userListName + ")");
+    var bmOwner = $("ul.BookmarkList li:contains(" + userName + ")");
+
+    for (var i = 0; i < bmList.length; i++) {
+      for (var j = 0; j < bmOwner.length; j++) {
+        if (bmList[i] == bmOwner[j]) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function waitForHeader(waitCount) {
+    if ($(".user-menu")[0]) {
+      getUserName();
+      checkAlreadyInDefaultLists();
+    } else {
+      waitCount++;
+      if (waitCount <= 1000)
+        setTimeout(function () {
+          waitForHeader(waitCount);
+        }, 10);
+    }
+  }
+
   getUserLists();
   getListsFromConfig();
   addAllLinks();
+  waitForHeader(0);
 })();

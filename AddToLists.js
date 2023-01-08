@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Geocaching Add to List
 // @namespace    nl.mwensveen.geocaching
-// @version      0.3
+// @version      0.4
 // @description  Add option to add the geocache to a number of lists. The lists are set in the config using the tempermonkey menu.
 // @author       mwensveen
 // @match        https://www.geocaching.com/geocache/*
@@ -108,11 +108,15 @@
     jsonBody.push({ referenceCode: gccode });
     console.log(JSON.stringify(jsonBody));
 
+    var afToken =  $('input[name=__RequestVerificationToken]').val();  
+    console.log(afToken);
+
     $.ajax({
       type: "PUT",
       url: url,
       contentType: "application/json; charset=utf-8",
       dataType: "json",
+      headers: { 'X-Verification-Token': afToken},
       data: JSON.stringify(jsonBody),
       success: function (result) {
         return false;

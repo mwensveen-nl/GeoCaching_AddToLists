@@ -42,10 +42,12 @@
     });
     var listsArray = cfg.get("defaulLists").split(";");
     listsArray.forEach((element) => {
-      var elems = element.split("=");
-      var name = elems[0];
-      var lists = elems[1].split(",");
-      defaultListsFromConfig[name] = lists;
+	  if( element && element !== "null" && element !== "undefined" ){
+        var elems = element.split("=");
+        var name = elems[0];
+        var lists = elems[1].split(",");
+        defaultListsFromConfig[name] = lists;
+	  }
     });
 
     for (const [key, value] of Object.entries(defaultListsFromConfig)) {
@@ -148,24 +150,14 @@
   }
 
   function createSuccessErrorText(setName, success) {
-    var listsToAdd = defaultListsFromConfig[setName];
-    var span = document.createElement("span");
-    span.appendChild(getLinkText(setName, listsToAdd));
-    console.log(setName, success);
-    span.style.color = success ? "#02874d" : "#d34627";
-    span.style.textDecoration = "none";
-    span.style.cursor = "default";
-    var linkId = LINK_ID_PREFIX + setName;
-    span.id = linkId;
     var listItemId = "#" + LIST_ID_PREFIX + setName;
-    $("#" + linkId).replaceWith(span);
+ 
     $(listItemId).css(
       "background-image",
       success
         ? "url('https://www.geocaching.com/images/logtypes/2.png')"
         : "url('https://www.geocaching.com/images/logtypes/3.png')"
     );
-    return span;
   }
 
   function getUserName() {

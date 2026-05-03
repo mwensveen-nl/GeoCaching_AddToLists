@@ -110,7 +110,7 @@
     jsonBody.push({ referenceCode: gccode });
     console.log(JSON.stringify(jsonBody));
 
-    var afToken =  $('input[name=__RequestVerificationToken]').val();  
+    var afToken =  $('input[name=__RequestVerificationToken]').val();
     console.log(afToken);
 
     $.ajax({
@@ -151,7 +151,7 @@
 
   function createSuccessErrorText(setName, success) {
     var listItemId = "#" + LIST_ID_PREFIX + setName;
- 
+
     $(listItemId).css(
       "background-image",
       success
@@ -186,13 +186,21 @@
     var bmList = $("ul.BookmarkList li:contains(" + userListName + ")");
     var bmOwner = $("ul.BookmarkList li:contains(" + userName + ")");
 
-    for (var i = 0; i < bmList.length; i++) {
-      for (var j = 0; j < bmOwner.length; j++) {
-        if (bmList[i] == bmOwner[j]) {
-          return true;
-        }
-      }
+    // 1. Find the parent div containing the h3 with specific text
+    var $containerDiv = $('h3:contains("My Bookmark Lists")').closest('div');
+
+    // 2, 3, & 4. Check if a single <li> contains both specific <a> tags
+    var $matchingEntry = $containerDiv.find('li').filter(function() {
+        var hasList = $(this).find('a:contains("' + userListName + '")').length > 0;
+        var hasCreator = $(this).find('a:contains("' + userName + '")').length > 0;
+        return hasList && hasCreator;
+    });
+
+    // Validation check
+    if ($matchingEntry.length > 0) {
+      return true;
     }
+
     return false;
   }
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Geocaching Add to List
 // @namespace    nl.mwensveen.geocaching
-// @version      0.4
+// @version      0.5
 // @description  Add option to add the geocache to a number of lists. The lists are set in the config using the tempermonkey menu.
 // @author       mwensveen
 // @match        https://www.geocaching.com/geocache/*
@@ -173,37 +173,52 @@
     });
   }
 
-  function checkAlreadyInDefaultList(setName, defaultList) {
-    for (const listName of defaultList) {
-      if (!hasBookmark(listName)) {
-        return;
-      }
-    }
-    createSuccessErrorText(setName, true);
-  }
 
-  function hasBookmark(userListName) {
-    var bmList = $("ul.BookmarkList li:contains(" + userListName + ")");
-    var bmOwner = $("ul.BookmarkList li:contains(" + userName + ")");
+  async function checkAlreadyInDefaultList(setName, defaultList) {
+        // Run all checks in parallel
+        const results = await Promise.all(
+            defaultList.map(name => validateBookmark(name, userName))
+        );
 
-    // 1. Find the parent div containing the h3 with specific text
-    var $containerDiv = $('h3:contains("My Bookmark Lists")').closest('div');
+        // Check if every single entry returned true
+        const allFound = results.every(result => result === true);
 
-    // 2, 3, & 4. Check if a single <li> contains both specific <a> tags
-    var $matchingEntry = $containerDiv.find('li').filter(function() {
-        var hasList = $(this).find('a:contains("' + userListName + '")').length > 0;
-        var hasCreator = $(this).find('a:contains("' + userName + '")').length > 0;
-        return hasList && hasCreator;
-    });
-
-    // Validation check
-    if ($matchingEntry.length > 0) {
-      return true;
+        console.log("Are all bookmarks present?", allFound);
+        if (allFound) {
+          createSuccessErrorText(setName, true);
+        }
     }
 
-    return false;
-  }
+  function validateBookmark(listName, creatorName) {
+        return new Promise((resolve) => {
+            var attempts = 0;
+            var maxAttempts = 10;
 
+            var checkInterval = setInterval(function() {
+                attempts++;
+                var $containerDiv = $('h3:contains("My Bookmark Lists")').closest('div');
+
+                if ($containerDiv.length > 0) {
+                  console.log("My Bookmark Lists found " + listName)
+                    clearInterval(checkInterval);
+
+                    // Logic: Find an LI that contains BOTH the list name and the creator name
+                    var $matchingEntry = $containerDiv.find('li').filter(function() {
+                        var hasList = $(this).find('a:contains("' + listName + '")').length > 0;
+                        var hasCreator = $(this).find('a:contains("' + creatorName + '")').length > 0;
+                        return hasList && hasCreator;
+                    });
+
+                    resolve($matchingEntry.length > 0);
+                }
+                else if (attempts >= maxAttempts) {
+                  console.log("My Bookmark Lists not found " + listName)
+                    clearInterval(checkInterval);
+                    resolve(false);
+                }
+            }, 1000);
+        });
+    }
   function waitForHeader(waitCount) {
     if ($(".user-menu")[0]) {
       getUserName();
